@@ -11,6 +11,7 @@ const e = require('express');
 app.use(express.json(urlencoded({ extended: true })));
 
 function setUpTopicSubscription() {
+    setUpHealthEndPoint();
     queueManager.consumeMsgFromTopic().subscribe((data, err) => {
         if (err) {
             console.log("Error Occured");
@@ -29,7 +30,20 @@ function setUpTopicSubscription() {
     });
 }
 
-
+function setUpHealthEndPoint(){
+    setInterval(()=>{
+        queueManager.sendMsgToTopic({body:{name:"FinalizeTrade",status:"Healthy",time:new Date()}},"Endpoint=sb://micro-service-bus.servicebus.windows.net/;SharedAccessKeyName=service-health-send;SharedAccessKey=ZYhC+wmgdICYY8ilxeisv00/gN9JB3vChGjaoqWY7uk=;","test-service-health").then((data,err)=>{
+        if(err){
+            console.log("Encountered error in Sending Create Transaction Message to Topic")
+        }
+        else{
+            if(data){
+                console.log("Message insertion is successful");
+            }
+        }
+      });
+    },15000);
+}
 function checkTradeStatus() {
 
     //else {

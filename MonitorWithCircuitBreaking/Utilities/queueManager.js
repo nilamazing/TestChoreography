@@ -5,6 +5,18 @@ let listenConnectionString = "Endpoint=sb://micro-service-bus.servicebus.windows
 let topicName = "transact-status-topic";
 const subscriptionName = "transact-status-sub";
 
+function consumeMsgFromHealthTopic(){
+  return new Observable((sub) => {
+    const svcBusClient = new ServiceBusClient("Endpoint=sb://micro-service-bus.servicebus.windows.net/;SharedAccessKeyName=service-health-listen;SharedAccessKey=opGUtxwJL3nFk0htHoHK7FHk5eIN6Jqpjl5HxC/nPas=;EntityPath=test-service-health");
+    const receiver = svcBusClient.createReceiver("test-service-health", "test-service-sub");
+    let payLoad = null;
+    receiver.subscribe({
+      processMessage: async (msgReceived) => { console.log("Health Message received :-", msgReceived.body); payLoad = msgReceived.body; sub.next(payLoad); },
+      processError: async (err) => { throw new Error(err) }
+    });
+  });
+}
+
 function consumeMsgFromTopic() {
   return new Observable((sub) => {
     const svcBusClient = new ServiceBusClient(listenConnectionString);
@@ -24,4 +36,4 @@ function consumeMsgFromTopic() {
 
 
 
-module.exports = { consumeMsgFromTopic }
+module.exports = { consumeMsgFromTopic,consumeMsgFromHealthTopic }

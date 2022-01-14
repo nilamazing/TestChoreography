@@ -8,6 +8,7 @@ let topicName="test-topic"
 let transactionId = (Math.random() + 1).toString(36).substring(4);
 
 async function createUniqueTransaction(){
+    setUpHealthEndPoint();
     queueManager.sendMsgToTopic({body:{id:transactionId,status:"Created"}},"Endpoint=sb://micro-service-bus.servicebus.windows.net/;SharedAccessKeyName=transact-status-send;SharedAccessKey=GPuLpa7oBO6srgSAXwV6AFU0FoNQ2DXTEEzo/yPF+U0=;","transact-status-topic").then((data,err)=>{
         if(err){
             console.log("Encountered error in Sending Create Transaction Message to Topic")
@@ -18,6 +19,20 @@ async function createUniqueTransaction(){
             }
         }
       });
+}
+async function setUpHealthEndPoint(){
+    setInterval(()=>{
+        queueManager.sendMsgToTopic({body:{name:"GenerateTokenService",status:"Healthy",time:new Date()}},"Endpoint=sb://micro-service-bus.servicebus.windows.net/;SharedAccessKeyName=service-health-send;SharedAccessKey=ZYhC+wmgdICYY8ilxeisv00/gN9JB3vChGjaoqWY7uk=;","test-service-health").then((data,err)=>{
+        if(err){
+            console.log("Encountered error in Sending Create Transaction Message to Topic")
+        }
+        else{
+            if(data){
+                console.log("Message insertion is successful");
+            }
+        }
+      });
+    },15000)
 }
 app.use(express.json(urlencoded({extended:true})));
 app.use(cors({
